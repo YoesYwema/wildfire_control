@@ -89,18 +89,10 @@ if args.run:
         from HI_CNN import HI_CNN
         Agent = HI_CNN(forestfire, args.name, args.environment, args.size)
         Agent.prev_train()                                                          # train a model
-        Agent.create_memories(args.train_memories, args.val_memories)               # create data from levels that this model failed to successfully finish
+        Agent.create_memories(args.train_memories, args.val_memories)               # create data to train and validate
         counter = 0
         n = 30
         while counter < n:
             Agent.train()                                                           # train 30 networks
             Agent.test(args.test_episodes)                                          # test 30 models on 100 new levels
             counter += 1
-
-
-def get_environment():
-    return args.environment
-
-
-def get_size():
-    return args.size

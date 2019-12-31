@@ -229,7 +229,7 @@ class CNN_EXTRA:
             test_scores.append(score)
 
             # # Print some information about the episode
-            #  self.sim.render()
+            self.sim.render()
             # print(f"[Episode {episode + 1}]")
             # print(f"\t\tAgent dead: {len(self.sim.W.agents) == 0}")
             # print(f"Score: {score}")

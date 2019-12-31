@@ -79,7 +79,7 @@ def get_agent_location(width, height):
     # Convert to int because otherwise not JSON serializable
     return (int(random_loc[0]), int(random_loc[1]))
 
-# Generate a unique name for each run, based on constants and the current time
+# Generate a name for a certain environment, based on size and complexity of the environment
 def get_name(size, environment):
     import time
     return (

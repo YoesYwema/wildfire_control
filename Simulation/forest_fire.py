@@ -37,17 +37,18 @@ class ForestFire:
             self.update()
             METADATA['a_speed_iter'] = METADATA['a_speed']
 
-        # Return the state, reward and whether the simulation is done
+        # Return the state, reward and whether the simulation is still running
         return [self.W.get_state(),
                 self.W.get_reward(),
                 not self.W.RUNNING,
                 {}]
 
-    # Reset the simulation to its initial state
+    # Reset
     def reset(self):
         self.W.reset()
         return self.W.get_state()
 
+    # Reset the simulation to its initial state
     def initial_state(self, initial_state):
         self.W.rebuild_initial_state(initial_state)
         return self.W.get_state()

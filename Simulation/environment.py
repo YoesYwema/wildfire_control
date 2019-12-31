@@ -55,7 +55,7 @@ This function is also called after initialization
 
 It can make a simple river from a starting position near the top
 of the map randomly downwards to almost the bottom of the map, besides 
-that some houses can be placed randomly om the map.
+that some houses can be placed randomly on the map.
 '''
 def reset_map(env, make_river=True, make_houses=True):
     env[:, :, layer['gray']].fill(grass['gray'])
@@ -195,7 +195,7 @@ class World:
 
     # Reset any changed parameters to their default values
     def reset(self):
-        # Set wind parameters
+        # Set wind parameters (not used in this project)
         if METADATA['wind'] == "random":
             self.wind_speed = np.random.choice([0, 0.7, 0.85])
             self.wind_vector = (r.randint(-1, 1), r.randint(-1, 1))
@@ -278,9 +278,6 @@ class World:
         self.reset_border_points()
         self.fire_at_border = False
 
-
-
-
     # Reset the queue containing the border points of the map
     def reset_border_points(self):
         self.border_points = deque()
@@ -295,7 +292,7 @@ class World:
     def inbounds(self, x, y):
         return x in range(self.WIDTH) and y in range(self.HEIGHT)
 
-    # Determine whether a coordinate is traversable by the agent (not water or house)
+    # Determine whether a coordinate is traversable by the agent (not water, house or burned house)
     def traversable(self, x, y):
         return self.env[x, y, layer['type']] != types['water'] and self.env[x, y, layer['type']] != types['house'] and \
                self.env[x, y, layer['gray']] != house['gray_house_burnt']
@@ -406,18 +403,8 @@ class World:
         return neighbours
 
     '''
-    Return the score for the current state:
-
-    if the fire is contained (no path from any fire to any border point):
-        give a large reward
-    if the agent has died:
-        give a large penalty
-        stop simulation
-    if the fire has burnt out (no burning cells left):
-        give a large reward * percent of the map untouched
-        stop simulation
-    otherwise:
-        give a small penalty
+    Returned the score for a current state. Score isn't used to measure performance anymore. 
+    Function analyzes whether the fire is isolated, therefore the function is kept.
     '''
     def get_reward(self):
         # Don't check paths if fire has reached border or if fire contained or
@@ -477,8 +464,10 @@ class World:
     State consists of different layers with each containing only boolean entries
     - The agents position
     - The fire positions
-    - The positions that can be set on fire
-    - The positions an agent 
+    - The water positions
+    - The house positions
+    - The dirt positions
+    - The tree/grass positions
     '''
     def get_state(self):
         return np.dstack((self.env[:, :, layer['agent_pos']],
@@ -487,74 +476,4 @@ class World:
                           self.env[:, :, layer['type']] == types['house'],
                           self.env[:, :, layer['type']] == types['dirt'],
                           self.env[:, :, layer['type']] == types['grass'],))
-
-    # Print the map from the state (as the agent sees it)
-    def print_state(self, state):
-        for y in range(state.shape[1]):
-            for x in range(state.shape[1]):
-                # Agent layer
-                if state[0, x, y, 0]:
-                    print("A", end="")
-                # Fire layer
-                elif state[0, x, y, 1]:
-                    print("@", end="")
-                # Dirt + water layer (fire mobility is 0 if cell is dirt or water)
-                elif not state[0, x, y, 2]:
-                    print("0", end="")
-                elif state[0, x, y, 3]:
-                    print("a", end="")
-                else:
-                    print("+", end="")
-            print("")
-        print("")
-
-    # Print information about a cell (x, y)
-    def inspect(self, cell):
-        x, y = cell
-        cell_info = self.env[x, y, :]
-        gray = cell_info[layer['gray']]
-        print("\n[Color] Grayscale:", gray, "Ascii:", color2ascii[gray])
-        print("[Temperature] ", cell_info[layer['temp']])
-        print("[Heat Power] ", cell_info[layer['heat']])
-        print("[Fuel Level] ", cell_info[layer['fuel']])
-        print("[Ignition Threshold], ", cell_info[layer['threshold']])
-        if self.agents and (self.agents[0].x, self.agents[0].y) == (x, y):
-            agent_at_loc = True
-        else:
-            agent_at_loc = False
-        print("[Cell contains an Agent] ", agent_at_loc, "\n")
-
-    # Print various info about the world
-    def print_info(self, total_reward):
-        type_map = self.env[:, :, layer['type']]
-        num_burnt = np.count_nonzero(type_map == types['burnt'])
-        num_burning = np.count_nonzero(type_map == types['fire'])
-        num_dug = np.count_nonzero(type_map == types['dirt'])
-        num_healthy = np.count_nonzero(type_map == types['grass'])
-        print("[# of Burnt Cells] ", num_burnt)
-        print("[# of Burning Cells] ", num_burning)
-        print("[# of Dug Cells] ", num_dug)
-        print("[# of Healthy Cells] ", num_healthy)
-        print("[# of Damaged Cells] ", num_dug + num_burnt + num_burning)
-        print("[Percent Burnt] ", num_burnt / (WIDTH * HEIGHT))
-        print("[Percent Damaged] ", (num_burnt+num_dug+num_burning) / (WIDTH * HEIGHT))
-        print("[Total Reward] ", total_reward)
-        print("[Current Reward] ", self.get_reward(), "\n")
-
-    # Print all the METADATA contents
-    def print_metadata(self):
-        import pprint
-        pp = pprint.PrettyPrinter()
-        pp.pprint(METADATA)
-        print("")
-
-    # Print a specific layer of the map
-    def show_layer(self, layer_num=None):
-        if layer_num is None:
-            import pprint
-            pp = pprint.PrettyPrinter()
-            pp.pprint(layer)
-            print("")
-        else:
-            print(self.env[:, :, layer[layer_num]].T)
 

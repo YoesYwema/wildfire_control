@@ -9,7 +9,6 @@ from keras.utils import to_categorical
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 
 
-
 # Makes a function 'getch()' which gets a char from user without waiting for enter
 try:
     # Windows
@@ -47,7 +46,7 @@ class CNN:
         self.environment = environment
         self.size = size
 
-        # Information to save to file
+        # Information about number of fires that are contained, saved to a file
         self.logs = {
             'amount_of_fires_contained' : 0,
         }
@@ -111,8 +110,6 @@ class CNN:
                 else:
                     self.remember(state, action, False, done)
 
-
-
     # Train the Keras CNN model with samples taken from the memory
     def train(self):
         environment = str(self.environment) + "/"
@@ -172,10 +169,8 @@ class CNN:
         # Final command to train model
         self.model.fit(data_input, data_output, validation_data=(val_data_input, val_data_output), epochs=1000, callbacks=[es, mc], verbose=False)
 
-    '''
-    Test the behavior learned from training on completely new situations
-    without supervision and see whether agent will isolate the fire.
-    '''
+    # Test the behavior learned from training on completely new situations
+    # without supervision and see whether agent will isolate the fire.
     def test(self, n_rounds):
         # Variables to keep track of deaths, contained fires and average percentage of healthy cells
         amount_of_deaths = 0
@@ -209,7 +204,7 @@ class CNN:
             test_scores.append(score)
 
             # # Print some information about the episode
-            # self.sim.render()
+            self.sim.render()
             # print(f"[Episode {episode + 1}]")
             # print(f"\t\tAgent dead: {len(self.sim.W.agents) == 0}")
             # print(f"\t\tFires contained: {amount_of_fires_contained}")
@@ -286,6 +281,7 @@ class CNN:
             model.summary()
         return model
 
+    # Write the amount of contained fires to a log file
     def write_logs(self):
         # Get name for Log file
         name = self.sim.get_name(self.sim.W.WIDTH, self.environment)
@@ -300,7 +296,5 @@ class CNN:
                 f.write(json.dumps(self.logs).encode())  # If empty, write an array
             else:
                 f.seek(-1, 2)
-                # f.truncate()  # Remove the last character, open the array
                 f.write('\n'.encode())  # Write the separator
                 f.write(json.dumps(self.logs).encode())  # Dump the dictionary
-                # f.write(']'.encode())  # Close the array
